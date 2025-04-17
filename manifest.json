@@ -3,6 +3,8 @@
     "short_name": "Demo",
     "start_url": "pwa-demo/index.html",
     "display": "fullscreen",
+    "id": "/pwa-demo/index.html",
+    "scope": "/pwa-demo/"
     "icons": [
       {
         "src": "/icons/icon-192.png",
