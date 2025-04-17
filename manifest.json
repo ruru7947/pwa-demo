@@ -1,7 +1,7 @@
 {
     "name": "PWA Demo",
     "short_name": "Demo",
-    "start_url": "pwa-demo/",
+    "start_url": "pwa-demo/?fullscreen=true",
     "display": "fullscreen",
     "id": "/pwa-demo/index.html",
     "scope": "/pwa-demo/"
