@@ -4,7 +4,7 @@
     "start_url": "pwa-demo/?fullscreen=true",
     "display": "fullscreen",
     "id": "/pwa-demo/index.html",
-    "scope": "/pwa-demo/"
+    "scope": "/pwa-demo/",
     "icons": [
       {
         "src": "/icons/icon-192.png",
