@@ -3,55 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>PWA 啟動與系統資訊偵測 Demo</title>
+  <title>PWA 啟動＋系統／作業系統偵測</title>
 
-  <!-- PWA 必要設定 -->
+  <!-- PWA 設定 -->
   <link rel="manifest" href="/pwa-demo/manifest.json">
   <meta name="theme-color" content="#1E88E5">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="/icons/icon-192.png">
-
-  <!-- Android 舊版本支援 -->
-  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="/pwa-demo/icons/icon-192.png">
 
   <style>
-    body {
-      font-family: sans-serif;
-      margin: 0;
-      padding: 1rem;
-      background: #f9f9f9;
-      color: #333;
-    }
-    h1 {
-      font-size: 1.5rem;
-      margin-bottom: .5rem;
-    }
-    #container {
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 1rem 1.5rem;
-    }
-    .info {
-      margin: .5rem 0;
-      line-height: 1.4;
-    }
-    .label {
-      font-weight: bold;
-    }
-    code {
-      display: block;
-      background: #f0f0f0;
-      padding: .25rem .5rem;
-      border-radius: 4px;
-      word-break: break-all;
-    }
+    body { font-family: sans-serif; margin:0; padding:1rem; background:#f9f9f9; color:#333; }
+    #container { background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1); padding:1rem 1.5rem; }
+    h1 { font-size:1.5rem; margin-bottom:.5rem; }
+    .info { margin:.5rem 0; line-height:1.4; }
+    .label { font-weight:bold; }
+    code { display:block; background:#f0f0f0; padding:.25rem .5rem; border-radius:4px; word-break:break-all; }
   </style>
 </head>
 <body>
   <div id="container">
-    <h1>啟動模式與系統資訊</h1>
+    <h1>PWA 啟動＋系統／作業系統偵測</h1>
     <div class="info">
       <span class="label">啟動模式：</span>
       <span id="launch-mode">載入中…</span>
@@ -59,6 +31,10 @@
     <div class="info">
       <span class="label">裝置平台：</span>
       <span id="platform">載入中…</span>
+    </div>
+    <div class="info">
+      <span class="label">作業系統：</span>
+      <span id="os-name">載入中…</span>
     </div>
     <div class="info">
       <span class="label">User-Agent：</span>
@@ -75,55 +51,56 @@
   </div>
 
   <script>
-    // 1. 偵測是否以 Standalone (主畫面) 啟動
+    // 1. 偵測 Standalone 啟動
     function isLaunchedStandalone() {
-      const ios = window.navigator.standalone === true;
-      const other = window.matchMedia('(display-mode: standalone)').matches;
-      return ios || other;
+      return window.navigator.standalone === true ||
+             window.matchMedia('(display-mode: standalone)').matches;
     }
 
-    // 2. 偵測平台：iOS / Android / 其他
+    // 2. 偵測平台：Android / iOS / 其他
     function detectPlatform() {
-      const ua = navigator.userAgent || '';
+      const ua = navigator.userAgent;
       if (/Android/i.test(ua)) return 'Android';
       if (/iPhone|iPad|iPod/i.test(ua)) return 'iOS';
       return '其他';
     }
 
-    // 3. 取得系統資訊
+    // 3. 偵測作業系統：Windows, macOS, Linux, Chrome OS, Android, iOS
+    function detectOS() {
+      const ua = navigator.userAgent;
+      const platform = navigator.platform || '';
+      if (/Android/i.test(ua))          return 'Android';
+      if (/iPhone|iPad|iPod/i.test(ua)) return 'iOS';
+      if (/Win/i.test(platform))        return 'Windows';
+      if (/Mac/i.test(platform))        return 'macOS';
+      if (/Linux/i.test(platform))      return 'Linux';
+      if (/CrOS/i.test(ua))             return 'Chrome OS';
+      return '未知作業系統';
+    }
+
+    // 4. 取得其他系統資訊
     function getSystemInfo() {
       return {
         ua: navigator.userAgent,
-        platform: navigator.platform || '未知',
         screenRes: `${window.screen.width}×${window.screen.height}`,
         pixelRatio: window.devicePixelRatio || 1
       };
     }
 
-    // 4. 將結果寫入 DOM
+    // 5. 將結果寫入 DOM
     window.addEventListener('DOMContentLoaded', () => {
-      // 啟動模式
-      const launchEl = document.getElementById('launch-mode');
-      launchEl.textContent = isLaunchedStandalone()
+      document.getElementById('launch-mode').textContent = isLaunchedStandalone()
         ? '🎉 從「主畫面」啟動'
         : '🌐 以「瀏覽器」模式開啟';
 
-      // 平台
-      const platName = detectPlatform();
-      document.getElementById('platform').textContent = platName;
+      document.getElementById('platform').textContent = detectPlatform();
+      document.getElementById('os-name').textContent  = detectOS();
 
-      // 系統資訊
       const info = getSystemInfo();
-      document.getElementById('ua-string').textContent = info.ua;
+      document.getElementById('ua-string').textContent  = info.ua;
       document.getElementById('screen-res').textContent = info.screenRes;
       document.getElementById('pixel-ratio').textContent = info.pixelRatio;
     });
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/pwa-demo/sw.js')
-          .then(() => console.log('SW registered'))
-          .catch(err => console.error('SW register failed:', err));
-    }
   </script>
 </body>
 </html>
