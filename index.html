@@ -19,6 +19,10 @@
     .info { margin:.5rem 0; line-height:1.4; }
     .label { font-weight:bold; }
     code { display:block; background:#f0f0f0; padding:.25rem .5rem; border-radius:4px; word-break:break-all; }
+    /* Reload 提示 Modal */
+    #reload-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:1000; }
+    #reload-modal .modal-content { background:#fff; padding:1.5rem; border-radius:8px; max-width:90%; text-align:center; box-shadow:0 2px 10px rgba(0,0,0,0.2); }
+    #reload-modal button { padding:.5rem 1rem; font-size:1rem; border:none; border-radius:4px; background:#1E88E5; color:#fff; cursor:pointer; }
   </style>
 </head>
 <body>
@@ -50,14 +54,21 @@
     </div>
   </div>
 
+  <!-- Reload 提示 Modal -->
+  <div id="reload-modal">
+    <div class="modal-content">
+      <p style="font-size:1.1rem; margin-bottom:1rem;">🔄 有新版本可用，請重新整理以取得最新功能</p>
+      <button id="reload-btn">重新整理</button>
+    </div>
+  </div>
+
   <script>
-    // 1. 偵測 Standalone 啟動
+    // 偵測 Standalone 啟動
     function isLaunchedStandalone() {
-      return window.navigator.standalone === true ||
-             window.matchMedia('(display-mode: standalone)').matches;
+      return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
     }
 
-    // 2. 偵測平台：Android / iOS / 其他
+    // 偵測裝置平台
     function detectPlatform() {
       const ua = navigator.userAgent;
       if (/Android/i.test(ua)) return 'Android';
@@ -65,20 +76,20 @@
       return '其他';
     }
 
-    // 3. 偵測作業系統：Windows, macOS, Linux, Chrome OS, Android, iOS
+    // 偵測作業系統
     function detectOS() {
       const ua = navigator.userAgent;
       const platform = navigator.platform || '';
-      if (/Android/i.test(ua))          return 'Android';
+      if (/Android/i.test(ua)) return 'Android';
       if (/iPhone|iPad|iPod/i.test(ua)) return 'iOS';
-      if (/Win/i.test(platform))        return 'Windows';
-      if (/Mac/i.test(platform))        return 'macOS';
-      if (/Linux/i.test(platform))      return 'Linux';
-      if (/CrOS/i.test(ua))             return 'Chrome OS';
+      if (/Win/i.test(platform)) return 'Windows';
+      if (/Mac/i.test(platform)) return 'macOS';
+      if (/Linux/i.test(platform)) return 'Linux';
+      if (/CrOS/i.test(ua)) return 'Chrome OS';
       return '未知作業系統';
     }
 
-    // 4. 取得其他系統資訊
+    // 取得其他系統資訊
     function getSystemInfo() {
       return {
         ua: navigator.userAgent,
@@ -87,20 +98,45 @@
       };
     }
 
-    // 5. 將結果寫入 DOM
+    // 顯示 Reload Modal
+    function showReloadModal() {
+      const modal = document.getElementById('reload-modal');
+      const btn = document.getElementById('reload-btn');
+      modal.style.display = 'flex';
+      btn.addEventListener('click', () => {
+        modal.style.display = 'none';
+        window.location.reload();
+      });
+    }
+
+    // 主流程
     window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('launch-mode').textContent = isLaunchedStandalone()
         ? '🎉 從「主畫面」啟動'
         : '🌐 以「瀏覽器」模式開啟';
-
       document.getElementById('platform').textContent = detectPlatform();
-      document.getElementById('os-name').textContent  = detectOS();
-
+      document.getElementById('os-name').textContent = detectOS();
       const info = getSystemInfo();
-      document.getElementById('ua-string').textContent  = info.ua;
+      document.getElementById('ua-string').textContent = info.ua;
       document.getElementById('screen-res').textContent = info.screenRes;
       document.getElementById('pixel-ratio').textContent = info.pixelRatio;
     });
+
+    // 註冊 Service Worker 並監聽更新
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/pwa-demo/sw.js')
+        .then(reg => {
+          reg.addEventListener('updatefound', () => {
+            const newSW = reg.installing;
+            newSW.addEventListener('statechange', () => {
+              if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+                showReloadModal();
+              }
+            });
+          });
+        })
+        .catch(console.error);
+    }
   </script>
 </body>
 </html>
