@@ -59,9 +59,12 @@
   </div>
 
   <script>
-    // 偵測 Standalone 啟動
+    // 偵測 Standalone 或 Fullscreen 啟動
     function isLaunchedStandalone() {
-      return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+      const ios = window.navigator.standalone === true;
+      const standalone = window.matchMedia('(display-mode: standalone)').matches;
+      const fullscreen = window.matchMedia('(display-mode: fullscreen)').matches;
+      return ios || standalone || fullscreen;
     }
 
     // 偵測作業系統
